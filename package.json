@@ -7,7 +7,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build": "tsc",
-    "dev": "tsx src/orchestrator.ts"
+    "dev": "tsx src/orchestrator.ts",
+    "x-outbound": "tsx src/x/outbound-engagement.ts"
   },
   "keywords": [],
   "author": "Trent",
@@ -20,6 +21,10 @@
     "vitest": "3.0.8"
   },
   "dependencies": {
-    "playwright": "1.50.1"
+    "@anthropic-ai/sdk": "0.80.0",
+    "ai": "6.0.141",
+    "ai-gateway-provider": "3.1.2",
+    "playwright": "1.50.1",
+    "zod": "4.3.6"
   }
 }
