@@ -28,25 +28,27 @@ export async function scrollResults(
 
       for (const card of cards) {
         try {
+          const T = { timeout: 2_000 };
+
           // Author display name
           const author = await card
             .locator('[data-testid="User-Name"] span')
             .first()
-            .innerText()
+            .innerText(T)
             .catch(() => "");
 
           // @handle
           const handle = await card
             .locator('[data-testid="User-Name"] a[href*="/"]')
             .nth(1)
-            .getAttribute("href")
+            .getAttribute("href", T)
             .catch(() => "");
 
           // Tweet text
           const content = await card
             .locator('[data-testid="tweetText"]')
             .first()
-            .innerText()
+            .innerText(T)
             .catch(() => "");
 
           // Tweet URL (from the time element link)
@@ -54,7 +56,7 @@ export async function scrollResults(
             .locator("time")
             .first()
             .locator("..")
-            .getAttribute("href")
+            .getAttribute("href", T)
             .catch(() => "");
 
           const tweetUrl = tweetPath
@@ -64,37 +66,37 @@ export async function scrollResults(
           if (!tweetUrl || seen.has(tweetUrl)) continue;
           seen.add(tweetUrl);
 
-          // Engagement aria-labels
-          const replyLabel = await card
-            .locator('[data-testid="reply"]')
-            .getAttribute("aria-label")
-            .catch(() => "0");
-          const retweetLabel = await card
-            .locator('[data-testid="retweet"]')
-            .getAttribute("aria-label")
-            .catch(() => "0");
-          const likeLabel = await card
-            .locator('[data-testid="like"]')
-            .getAttribute("aria-label")
-            .catch(() => "0");
-
-          const extractNum = (s: string | null) =>
-            parseXCount(s?.match(/[\d,.KM]+/)?.[0] ?? "0");
+          // Engagement counts — try innerText first (visible number), fall back to aria-label
+          const extractCount = async (testId: string): Promise<number> => {
+            const el = card.locator(`[data-testid="${testId}"]`);
+            const text = await el.innerText(T).catch(() => "");
+            const fromText = text.match(/[\d,.]+[KkMm]?/)?.[0];
+            if (fromText) return parseXCount(fromText);
+            const label = await el.getAttribute("aria-label", T).catch(() => "");
+            const fromLabel = label?.match(/[\d,.]+[KkMm]?/)?.[0];
+            return parseXCount(fromLabel ?? "0");
+          };
 
           const timestamp = await card
             .locator("time")
             .first()
-            .getAttribute("datetime")
+            .getAttribute("datetime", T)
             .catch(() => "");
+
+          const [likes, retweets, replies] = await Promise.all([
+            extractCount("like"),
+            extractCount("retweet"),
+            extractCount("reply"),
+          ]);
 
           tweets.push({
             author: author.trim(),
             handle: handle ? handle.replace("/", "@") : "",
             content: content.trim(),
             tweetUrl,
-            likes: extractNum(likeLabel),
-            retweets: extractNum(retweetLabel),
-            replies: extractNum(replyLabel),
+            likes,
+            retweets,
+            replies,
             timestamp: timestamp ?? "",
           });
         } catch {

@@ -1,0 +1,21 @@
+{"ts":"2026-03-30T01:26:14.373Z","event":"abort","reason":"not_logged_in"}
+{"ts":"2026-03-30T01:26:49.911Z","event":"abort","reason":"not_logged_in"}
+{"ts":"2026-03-30T01:27:31.965Z","event":"abort","reason":"not_logged_in"}
+{"ts":"2026-03-30T01:27:46.541Z","event":"abort","reason":"not_logged_in"}
+{"ts":"2026-03-30T01:30:47.536Z","event":"abort","reason":"not_logged_in"}
+{"ts":"2026-03-30T01:32:18.455Z","event":"abort","reason":"not_logged_in"}
+{"ts":"2026-03-30T01:32:46.235Z","event":"abort","reason":"not_logged_in"}
+{"ts":"2026-03-30T01:34:56.239Z","event":"login_ok"}
+{"ts":"2026-03-30T01:34:56.241Z","event":"search_start","query":"building LLM applications 2025"}
+{"ts":"2026-03-30T01:35:03.924Z","event":"scroll_done","count":12}
+{"ts":"2026-03-30T01:35:03.925Z","event":"abort","reason":"no_targets_found"}
+{"ts":"2026-03-30T01:35:48.022Z","event":"login_ok"}
+{"ts":"2026-03-30T01:35:48.024Z","event":"search_start","query":"agentic AI automation founders"}
+{"ts":"2026-03-30T01:35:55.986Z","event":"scroll_done","count":19}
+{"ts":"2026-03-30T01:35:55.987Z","event":"targets_ready","count":4}
+{"ts":"2026-03-30T01:35:55.987Z","event":"tweet_start","index":1,"total":4,"tweetUrl":"https://x.com/corestackhq/status/2030944565151314047","author":"Core Stack"}
+{"ts":"2026-03-30T01:36:01.561Z","event":"reply_generated","tweetUrl":"https://x.com/corestackhq/status/2030944565151314047","replyText":"The shift isn't just automation replacing hiring — it's founders who can architect systems becoming 10x more dangerous than those who can't. The gap between \"prompt engineer\" and \"automation architect\" is already massive and widening fast."}
+{"ts":"2026-03-30T01:36:20.977Z","event":"tweet_done","tweetUrl":"https://x.com/corestackhq/status/2030944565151314047","verified":false}
+{"ts":"2026-03-30T01:36:20.977Z","event":"pacing_delay","delayMs":72077}
+{"ts":"2026-03-30T01:37:33.069Z","event":"tweet_start","index":2,"total":4,"tweetUrl":"https://x.com/Agentoxai/status/2028522889168015506","author":"Agent OX"}
+{"ts":"2026-03-30T01:37:38.771Z","event":"reply_generated","tweetUrl":"https://x.com/Agentoxai/status/2028522889168015506","replyText":"Just shipped a voice agent platform for enterprise workflows. The latency problem is 90% solved — the real challenge now is making them sound less robotic when handling edge cases. What's your take on interruption handling?"}

@@ -9,7 +9,7 @@ const ConfigSchema = z.object({
     .default(
       "C:\\Users\\Trent\\rep\\COMMAND CENTER\\Command Center\\Personalization\\my-voice.md"
     ),
-  MAX_REPLIES_PER_SESSION: z.coerce.number().int().positive().default(4),
+  MAX_REPLIES_PER_SESSION: z.coerce.number().int().positive().default(8),
   REPLY_DELAY_MIN_MS: z.coerce.number().int().nonnegative().default(45_000),
   REPLY_DELAY_MAX_MS: z.coerce.number().int().nonnegative().default(90_000),
 });

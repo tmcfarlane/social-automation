@@ -23,30 +23,32 @@ export async function readThread(
 
     const replies: Comment[] = [];
 
+    const T = { timeout: 2_000 };
+
     // Skip the first card (the original tweet itself)
     for (const card of cards.slice(1)) {
       try {
         const commenter = await card
           .locator('[data-testid="User-Name"] span')
           .first()
-          .innerText()
+          .innerText(T)
           .catch(() => "");
 
         const text = await card
           .locator('[data-testid="tweetText"]')
           .first()
-          .innerText()
+          .innerText(T)
           .catch(() => "");
 
         const timestamp = await card
           .locator("time")
           .first()
-          .getAttribute("datetime")
+          .getAttribute("datetime", T)
           .catch(() => "");
 
         const likeLabel = await card
           .locator('[data-testid="like"]')
-          .getAttribute("aria-label")
+          .getAttribute("aria-label", T)
           .catch(() => "0");
 
         const likes = parseInt(likeLabel?.match(/\d+/)?.[0] ?? "0", 10);

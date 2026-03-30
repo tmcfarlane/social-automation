@@ -9,6 +9,13 @@ export async function typeReply(
   text: string
 ): Promise<SkillResult<void>> {
   try {
+    // Dismiss any open overlay/modal that might block clicks (cookie prompts, notification dialogs, etc.)
+    const mask = page.locator('[data-testid="twc-cc-mask"]');
+    if (await mask.isVisible().catch(() => false)) {
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(400);
+    }
+
     // Click the reply button on the main tweet (first card)
     const replyBtn = page
       .locator('[data-testid="tweet"]')
@@ -17,7 +24,7 @@ export async function typeReply(
 
     await replyBtn.waitFor({ timeout: 8_000 });
     await replyBtn.click();
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(800);
 
     // The reply compose box
     const composeBox = page
@@ -25,7 +32,12 @@ export async function typeReply(
       .first();
 
     await composeBox.waitFor({ timeout: 5_000 });
-    await composeBox.click();
+
+    // Wait for any mask overlay to clear before clicking (it may reappear briefly)
+    await page.locator('[data-testid="twc-cc-mask"]').waitFor({ state: "hidden", timeout: 5_000 }).catch(() => {});
+
+    // Use force:true as fallback if mask is still present but textarea is ready
+    await composeBox.click({ force: true });
     await composeBox.type(text, { delay: 30 });
 
     const typed = await composeBox.innerText();
