@@ -1,5 +1,5 @@
-import { chromium } from "playwright";
 import type { Browser } from "playwright";
+import { ensureBrowser } from "./ensure-chrome.js";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -14,6 +14,7 @@ import { readThread } from "./read-thread";
 import { typeReply } from "./type-reply";
 import { submitReply } from "./submit-reply";
 import { verifyReply } from "./verify-reply";
+import { hasOurReply } from "./thread-guard";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -133,10 +134,7 @@ function readVoiceGuide(filePath: string): string {
 }
 
 async function launchBrowser(cdpUrl?: string): Promise<Browser> {
-  if (cdpUrl) {
-    return chromium.connectOverCDP(cdpUrl);
-  }
-  return chromium.launch({ headless: false });
+  return ensureBrowser(cdpUrl);
 }
 
 // ---------------------------------------------------------------------------
@@ -177,7 +175,7 @@ export async function runOutboundEngagement(
     }
 
     // ── Step 3: Scroll and extract tweet cards ───────────────────────────────
-    const scrollResult = await scrollResults(page, 4);
+    const scrollResult = await scrollResults(page, 6);
     if (!scrollResult.success || !scrollResult.data) {
       log({
         event: "abort",
@@ -199,7 +197,8 @@ export async function runOutboundEngagement(
     // ── Step 4: Filter to engagement-worthy targets ──────────────────────────
     const filterResult = findTargetTweet(scrollResult.data, {
       minEngagement: 50,
-      maxAgeHours: 168, // 7 days — top tab returns popular tweets from any time period
+      // No maxAgeHours — "top" tab returns popular tweets from any time period
+      // and engagement already validates relevance
     });
 
     if (
@@ -228,6 +227,13 @@ export async function runOutboundEngagement(
       try {
         // Read thread for richer context
         const threadResult = await readThread(page, tweet.tweetUrl);
+
+        // ── Guardrail: never reply if we already have a reply in this thread ──
+        if (await hasOurReply(page)) {
+          log({ event: "skip_tweet", reason: "already_replied", tweetUrl: tweet.tweetUrl });
+          continue;
+        }
+
         const threadContext =
           threadResult.data
             ?.slice(0, 3)

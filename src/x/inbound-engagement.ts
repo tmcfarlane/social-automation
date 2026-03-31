@@ -1,5 +1,5 @@
-import { chromium } from "playwright";
 import type { Browser } from "playwright";
+import { ensureBrowser } from "./ensure-chrome.js";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -10,6 +10,7 @@ import { loginCheck } from "./login-check";
 import { typeReply } from "./type-reply";
 import { submitReply } from "./submit-reply";
 import { verifyReply } from "./verify-reply";
+import { hasOurReply } from "./thread-guard";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -50,7 +51,6 @@ interface InboundState {
 const STATE_PATH = "C:\\Users\\Trent\\rep\\COMMAND CENTER\\Command Center\\SocialMediaEngine\\X\\state\\x-inbound-state.json";
 const LOG_DIR = "C:\\Users\\Trent\\rep\\COMMAND CENTER\\Command Center\\SocialMediaEngine\\X\\replies";
 const MY_HANDLE = "hodlmecloseplz";
-const MAX_REPLIES_PER_THREAD = 3;
 const MAX_REPLIES_PER_SESSION = 5;
 const SAFETY_LIMIT = 100;
 
@@ -195,10 +195,7 @@ function appendToLog(results: InboundResult[]): void {
 // ---------------------------------------------------------------------------
 
 async function launchBrowser(cdpUrl?: string): Promise<Browser> {
-  if (cdpUrl) {
-    return chromium.connectOverCDP(cdpUrl);
-  }
-  return chromium.launch({ headless: false });
+  return ensureBrowser(cdpUrl);
 }
 
 // ---------------------------------------------------------------------------
@@ -322,34 +319,19 @@ async function scrapeMentions(
 }
 
 // ---------------------------------------------------------------------------
-// Check how many times we've replied in a thread
+// Check if we've already replied in a thread
 // ---------------------------------------------------------------------------
 
-async function countOurRepliesInThread(
+async function checkAlreadyReplied(
   page: import("playwright").Page,
   tweetUrl: string
-): Promise<number> {
+): Promise<boolean> {
   try {
     await page.goto(tweetUrl, { waitUntil: "domcontentloaded", timeout: 15_000 });
-    await page.waitForTimeout(1_500);
-
-    const cards = await page.locator('[data-testid="tweet"]').all().catch(() => []);
-    let count = 0;
-
-    for (const card of cards.slice(1)) {
-      const handleHref = await card
-        .locator('[data-testid="User-Name"] a[href*="/"]')
-        .nth(1)
-        .getAttribute("href")
-        .catch(() => "");
-      if (handleHref?.replace("/", "").toLowerCase() === MY_HANDLE.toLowerCase()) {
-        count++;
-      }
-    }
-
-    return count;
+    await page.waitForTimeout(2_000);
+    return await hasOurReply(page);
   } catch {
-    return 0;
+    return false;
   }
 }
 
@@ -417,10 +399,10 @@ export async function runInboundEngagement(
 
       log({ event: "mention_check", handle: mention.handle, tweetUrl: mention.tweetUrl });
 
-      // Check thread reply count
-      const ourReplyCount = await countOurRepliesInThread(page, mention.tweetUrl);
-      if (ourReplyCount >= MAX_REPLIES_PER_THREAD) {
-        log({ event: "skip_mention", reason: "thread_reply_limit", handle: mention.handle });
+      // Check thread: skip if we already have any reply in this thread
+      const alreadyReplied = await checkAlreadyReplied(page, mention.tweetUrl);
+      if (alreadyReplied) {
+        log({ event: "skip_mention", reason: "already_replied", handle: mention.handle });
         continue;
       }
 
@@ -453,7 +435,7 @@ export async function runInboundEngagement(
       await page.goto(mention.tweetUrl, { waitUntil: "domcontentloaded", timeout: 15_000 });
       await page.waitForTimeout(1_500);
 
-      const typeResult = await typeReply(page, replyText);
+      const typeResult = await typeReply(page, replyText, mention.tweetUrl);
       if (!typeResult.success) {
         log({ event: "type_failed", handle: mention.handle, error: typeResult.error });
         continue;

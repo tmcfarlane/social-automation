@@ -21,8 +21,8 @@ export async function scrollResults(
     const seen = new Set<string>();
 
     for (let i = 0; i < scrollPasses; i++) {
-      await page.evaluate(() => window.scrollBy(0, 800));
-      await page.waitForTimeout(1_200);
+      await page.evaluate(() => window.scrollBy(0, 1000 + Math.random() * 400));
+      await page.waitForTimeout(1_500 + Math.random() * 500);
 
       const cards = await page.locator('[data-testid="tweet"]').all().catch(() => []);
 
