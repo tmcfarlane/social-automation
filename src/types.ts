@@ -11,6 +11,8 @@ export interface PostCard {
   comments: number;
   reposts: number;
   timestamp: string;
+  /** DOM index within div[role='listitem'] — used by outbound-engagement for in-place interaction */
+  postIndex?: number;
 }
 
 export interface Comment {
